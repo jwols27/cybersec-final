@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { login, register, verify2FA } from '../controllers/authController';
+
+const router = Router();
+
+router.post('/register', register);
+router.post('/login', login);
+router.post('/2fa/verify', verify2FA);
+
+export default router;
