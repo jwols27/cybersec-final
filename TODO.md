@@ -1,0 +1,4 @@
+- Monitor and block brute force attacks
+- OAuth2
+- API with digital certificate
+- Frontend

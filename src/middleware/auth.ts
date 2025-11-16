@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { NextFunction, Request, Response } from 'express';
+import { Request, RequestHandler } from 'express';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -7,7 +7,7 @@ export interface AuthRequest extends Request {
 	user?: { email: string };
 }
 
-export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticateJWT: RequestHandler = (req: AuthRequest, res, next) => {
 	const authHeader = req.headers.authorization;
 	if (!authHeader) return res.status(401).json({ error: 'Missing Authorization header' });
 

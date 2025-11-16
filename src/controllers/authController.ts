@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { generate2FASecret, verify2FAToken } from '../utils/totps';
 
@@ -9,7 +9,7 @@ const SECURE = !process.env.DEV;
 const JWT_SECRET = process.env.JWT_SECRET!;
 const PENDING_SECRET = process.env.PENDING_SECRET!;
 
-export const register = async (req: Request, res: Response) => {
+export const register: RequestHandler = async (req, res) => {
 	const { email, password } = req.body;
 	const existing = await prisma.user.findUnique({ where: { email } });
 	if (existing) return res.status(400).json({ error: 'Email already registered' });
@@ -24,7 +24,7 @@ export const register = async (req: Request, res: Response) => {
 	res.json({ message: 'Registered', qrCodeDataURL });
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login: RequestHandler = async (req, res) => {
 	const { email, password } = req.body;
 	const user = await prisma.user.findUnique({ where: { email } });
 	if (!user) return res.status(404).json({ error: 'User not found' });
@@ -38,13 +38,13 @@ export const login = async (req: Request, res: Response) => {
 		httpOnly: true,
 		sameSite: 'lax',
 		secure: SECURE,
-		maxAge: 60_000
+		maxAge: 60 * 1000
 	});
 
 	res.json({ message: 'Password OK, please verify 2FA within 1 minute' });
 };
 
-export const verify2FA = async (req: Request, res: Response) => {
+export const verify2FA: RequestHandler = async (req, res) => {
 	const { token } = req.body;
 	const pendingToken = req.cookies?.pending;
 
