@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 
 export const generate2FASecret = async (email: string) => {
 	const secret = speakeasy.generateSecret({
-		name: `MyApp (${email})`
+		name: `Cybersec Final (${email})`
 	});
 
 	const qrCodeDataURL = await QRCode.toDataURL(secret.otpauth_url!);
