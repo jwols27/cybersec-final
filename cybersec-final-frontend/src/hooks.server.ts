@@ -9,6 +9,7 @@ export const handle = async ({ event, resolve }) => {
     }
 
     if (!token) {
+        event.locals.user = undefined;
         throw redirect(303, '/auth/login');
     }
 
@@ -21,8 +22,10 @@ export const handle = async ({ event, resolve }) => {
             throw new Error('Not authenticated');
         }
 
-        const data = await res.json();
+        const { user } = await res.json();
+        event.locals.user = user;
     } catch {
+        event.locals.user = undefined;
         throw redirect(303, '/auth/login');
     }
 

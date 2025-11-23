@@ -35,6 +35,8 @@ export const actions: Actions = {
                 secure: true,
                 maxAge: 60 * 60
             });
+
+            cookies.delete("pending", { path: '/' });
         }
 
         return redirect(303, '/');

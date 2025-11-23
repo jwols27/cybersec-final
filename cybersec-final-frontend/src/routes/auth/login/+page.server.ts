@@ -39,5 +39,35 @@ async function handleAuthAction(endpoint: 'login' | 'register', event: RequestEv
 
 export const actions: Actions = {
     login: (event) => handleAuthAction('login', event),
-    register: (event) => handleAuthAction('register', event)
+    register: (event) => handleAuthAction('register', event),
+    googleAuth: async ({ request, cookies, fetch }) => {
+        const form = await request.formData();
+        const credential = form.get('credential');
+
+        if (!credential) {
+            return fail(400, { error: 'Missing credential' });
+        }
+
+        const response = await fetch('https://localhost:3443/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential })
+        });
+
+        if (!response.ok) {
+            return fail(response.status, { error: 'Authentication failed' });
+        }
+
+        const data = await response.json();
+
+        cookies.set('auth', data.authToken, {
+            path: '/',
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: true,
+            maxAge: 60 * 60
+        });
+
+        return redirect(303, '/');
+    }
 };

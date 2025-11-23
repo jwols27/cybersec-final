@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+body,
+html {
+	flex: 1;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	background-color: #1e2030;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	border: none;
+	font: inherit;
+	outline: none;
+	background: none;
+
+	color: #cad3f5;
+	font-family: Inter;
+}
+
+h1 {
+	font-weight: 500;
+	font-size: 2.5em;
+}
+
+b {
+	font-weight: 600;
+}
+
+strong {
+	font-weight: 700;
+}
+
+button {
+	font-weight: 500;
+	cursor: pointer;
+	padding: 0.5em 1em;
+	border-radius: 0.5em;
+	border: 1px solid currentColor;
+	transition: all 200ms ease;
+}
+
+button:hover {
+	background-color: #363a4f;
+}
+
+button:active {
+	color: #c6a0f6;
+}
+
+input {
+	padding: 0.5em;
+	border-radius: 0.5em;
+	border: 1px solid currentColor;
+}
+
+input:focus {
+	border-color: #c6a0f6;
+}
