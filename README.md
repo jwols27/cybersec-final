@@ -17,10 +17,23 @@ cp .env.example .env
 
 Altere as variáveis de ambiente conforme necessário.
 
+Iniciar banco de dados:
+
+```shell
+npx prisma migrate dev --name init
+```
+
 Iniciar o servidor:
 
 ```shell
 npm start
+```
+
+Iniciar o frontend:
+
+```shell
+cd cybersec-final-frontend
+npm run dev
 ```
 
 ## Certificados
@@ -82,19 +95,19 @@ openssl genrsa -out client.key 2048
 ```
 
 ```shell
- openssl req -new \
-  -key client.key \ 
-  -out client.csr \ 
+openssl req -new \
+  -key client.key \
+  -out client.csr \
   -subj "/C=BR/ST=SC/L=Chapecó/O=CyberSecFinal/OU=Cliente/CN=cliente1"
 ```
 
 ```shell
 openssl x509 -req \
-  -in client.csr \ 
-  -CA ca.crt \  
-  -CAkey ca.key \  
+  -in client.csr \
+  -CA ca.crt \
+  -CAkey ca.key \
   -CAcreateserial \
-  -out client.crt \ 
+  -out client.crt \
   -days 365 \
   -sha256
 ```

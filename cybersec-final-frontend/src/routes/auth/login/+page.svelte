@@ -27,13 +27,13 @@
 <h1 style="margin-bottom: 1em;">Login</h1>
 
 <form method="POST" action="?/login" use:enhance>
-	{#if form?.missingEmail}<p class="error">E-mail não preenchido</p>{/if}
 	<label for="email"> Email </label>
 	<input name="email" autocomplete="email" type="email" value={form?.email ?? ''} />
+	{#if form?.missingEmail}<p class="error">E-mail não preenchido</p>{/if}
 
-	{#if form?.missingPassword}<p class="error">Senha não preenchida</p>{/if}
 	<label for="password"> Senha </label>
 	<input name="password" type="password" />
+	{#if form?.missingPassword}<p class="error">Senha não preenchida</p>{/if}
 
 	<div class="actions">
 		<button>Entrar</button>
