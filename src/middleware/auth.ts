@@ -8,16 +8,17 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticateJWT: RequestHandler = (req: AuthRequest, res, next) => {
-	const authHeader = req.headers.authorization;
-	if (!authHeader) return res.status(401).json({ error: 'Missing Authorization header' });
+	const token = req.cookies?.auth;
 
-	const token = authHeader.split(' ')[1];
-	if (!token) return res.status(401).json({ error: 'Invalid Authorization header format' });
+	if (!token) {
+		return res.status(401).json({ error: 'Not authenticated' });
+	}
 
 	try {
 		req.user = jwt.verify(token, JWT_SECRET) as { email: string };
 		next();
 	} catch {
+		res.clearCookie('auth');
 		return res.status(403).json({ error: 'Invalid or expired token' });
 	}
 };

@@ -9,6 +9,10 @@ const SECURE = !process.env.DEV;
 const JWT_SECRET = process.env.JWT_SECRET!;
 const PENDING_SECRET = process.env.PENDING_SECRET!;
 
+const generatePendingToken = async (email: string, expiresIn: '1m' | '5m') => {
+	return jwt.sign({ email }, PENDING_SECRET, { expiresIn });
+};
+
 export const register: RequestHandler = async (req, res) => {
 	const { email, password } = req.body;
 	const existing = await prisma.user.findUnique({ where: { email } });
@@ -17,11 +21,11 @@ export const register: RequestHandler = async (req, res) => {
 	const hashed = await bcrypt.hash(password, 10);
 	const { secret, qrCodeDataURL } = await generate2FASecret(email);
 
-	await prisma.user.create({
-		data: { email, password: hashed, secret }
-	});
+	await prisma.user.create({ data: { email, password: hashed, secret } });
 
-	res.json({ message: 'Registered', qrCodeDataURL });
+	const pendingToken = await generatePendingToken(email, '5m');
+
+	res.json({ message: 'Registered, please verify 2FA within 5 minutes', qrCodeDataURL, pendingToken });
 };
 
 export const login: RequestHandler = async (req, res) => {
@@ -32,16 +36,10 @@ export const login: RequestHandler = async (req, res) => {
 	const valid = await bcrypt.compare(password, user.password);
 	if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
-	const pendingToken = jwt.sign({ email }, PENDING_SECRET, { expiresIn: '1m' });
+	const { qrCodeDataURL } = user.verified2FA ? {} : await generate2FASecret(email);
+	const pendingToken = await generatePendingToken(email, '1m');
 
-	res.cookie('pending', pendingToken, {
-		httpOnly: true,
-		sameSite: 'lax',
-		secure: SECURE,
-		maxAge: 60 * 1000
-	});
-
-	res.json({ message: 'Password OK, please verify 2FA within 1 minute' });
+	res.json({ message: 'Logged in, please verify 2FA within 1 minute', qrCodeDataURL, pendingToken });
 };
 
 export const verify2FA: RequestHandler = async (req, res) => {
@@ -64,9 +62,39 @@ export const verify2FA: RequestHandler = async (req, res) => {
 
 		const authToken = jwt.sign({ email: user.email }, JWT_SECRET, { expiresIn: '1h' });
 
-		res.json({ message: '2FA verified', token: authToken });
+		await prisma.user.update({ where: { id: user.id }, data: { verified2FA: true } });
+
+		res.json({ message: '2FA verified', authToken });
 	} catch (err) {
 		res.clearCookie('pending');
 		return res.status(403).json({ error: 'Pending token expired or invalid' });
 	}
+};
+
+export const me: RequestHandler = async (req, res) => {
+	const token = req.cookies?.auth;
+
+	if (!token) {
+		return res.status(401).json({ error: 'Not authenticated' });
+	}
+
+	try {
+		const decoded = jwt.verify(token, JWT_SECRET) as { email: string };
+
+		const user = await prisma.user.findUnique({
+			where: { email: decoded.email }
+		});
+
+		if (!user) return res.status(404).json({ error: 'User not found' });
+
+		res.json({ user });
+	} catch (err) {
+		res.clearCookie('auth');
+		return res.status(401).json({ error: 'Invalid or expired token' });
+	}
+};
+
+export const logout: RequestHandler = async (_, res) => {
+	res.clearCookie('auth', { httpOnly: true, sameSite: 'lax', secure: SECURE });
+	res.json({ message: 'Logged out' });
 };

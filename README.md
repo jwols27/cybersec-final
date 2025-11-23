@@ -103,6 +103,5 @@ openssl x509 -req \
 
 ```shell
 curl https://localhost:3443/api/data \
-  --cert certs/client.crt --key certs/client.key \
-  --cacert certs/ca.crt
+  --cert certs/client.crt --key certs/client.key
 ```
