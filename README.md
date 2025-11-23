@@ -17,10 +17,23 @@ cp .env.example .env
 
 Altere as variáveis de ambiente conforme necessário.
 
+Iniciar banco de dados:
+
+```shell
+npx prisma migrate dev --name init
+```
+
 Iniciar o servidor:
 
 ```shell
 npm start
+```
+
+Iniciar o frontend:
+
+```shell
+cd cybersec-final-frontend
+npm run dev
 ```
 
 ## Certificados
