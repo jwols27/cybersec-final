@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
+import cors from 'cors';
 import https from 'https';
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -8,6 +9,12 @@ import userRoutes from './routes/user';
 import apiRoutes from './routes/api';
 
 const app = express();
+app.use(
+	cors({
+		origin: true,
+		credentials: true
+	})
+);
 app.use(express.json());
 app.use(cookieParser());
 

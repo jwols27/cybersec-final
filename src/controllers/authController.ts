@@ -3,10 +3,10 @@ import jwt from 'jsonwebtoken';
 import { RequestHandler } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { generate2FASecret, verify2FAToken } from '../utils/totps';
+import { AuthService } from '../services/authService';
 
 const prisma = new PrismaClient();
 const SECURE = !process.env.DEV;
-const JWT_SECRET = process.env.JWT_SECRET!;
 const PENDING_SECRET = process.env.PENDING_SECRET!;
 
 const generatePendingToken = async (email: string, expiresIn: '1m' | '5m') => {
@@ -31,7 +31,7 @@ export const register: RequestHandler = async (req, res) => {
 export const login: RequestHandler = async (req, res) => {
 	const { email, password } = req.body;
 	const user = await prisma.user.findUnique({ where: { email } });
-	if (!user) return res.status(404).json({ error: 'User not found' });
+	if (!user || !user.password) return res.status(404).json({ error: 'User not found' });
 
 	const valid = await bcrypt.compare(password, user.password);
 	if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
@@ -53,14 +53,14 @@ export const verify2FA: RequestHandler = async (req, res) => {
 	try {
 		const decoded = jwt.verify(pendingToken, PENDING_SECRET) as { email: string };
 		const user = await prisma.user.findUnique({ where: { email: decoded.email } });
-		if (!user) return res.status(404).json({ error: 'User not found' });
+		if (!user || !user.secret) return res.status(404).json({ error: 'User not found' });
 
 		const valid = verify2FAToken(user.secret, token);
 		if (!valid) return res.status(401).json({ error: 'Invalid 2FA code' });
 
 		res.clearCookie('pending');
 
-		const authToken = jwt.sign({ email: user.email }, JWT_SECRET, { expiresIn: '1h' });
+		const authToken = AuthService.signJWT(user.email);
 
 		await prisma.user.update({ where: { id: user.id }, data: { verified2FA: true } });
 
@@ -79,7 +79,8 @@ export const me: RequestHandler = async (req, res) => {
 	}
 
 	try {
-		const decoded = jwt.verify(token, JWT_SECRET) as { email: string };
+		const decoded = AuthService.verifyJWT(token);
+		console.log(decoded);
 
 		const user = await prisma.user.findUnique({
 			where: { email: decoded.email }
